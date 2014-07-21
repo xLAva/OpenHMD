@@ -151,7 +151,7 @@ int OHMD_APIENTRY ohmd_device_getf(ohmd_device* device, ohmd_float_value type, f
 		return 0;
 	case OHMD_RIGHT_EYE_ASPECT_RATIO:
 	case OHMD_LEFT_EYE_ASPECT_RATIO:
-		*out = device->properties.fov;
+		*out = device->properties.ratio;
 		return 0;
 
 	case OHMD_EYE_IPD:
