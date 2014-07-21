@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.6)
 
 project(OpenHmd)
 
+if(CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "RELEASE")
+endif()
+
+
+
 set(LIB_SOURCE_FILES
 	fusion.c
 	fusion.h
@@ -20,6 +26,14 @@ set(LIB_SOURCE_FILES
 )
 
 set(CUSTOM_COMPILE_FLAGS_ALL "")
+set(LIBRARY_TYPE "SHARED")
+
+
+if(WIN32)
+    set(LIBRARY_NAME "openhmd")
+else()
+    set(LIBRARY_NAME "libopenhmd")
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
@@ -33,6 +47,21 @@ if(MSVC)
 
 	set(CUSTOM_COMPILE_FLAGS_ALL "${CUSTOM_COMPILE_FLAGS_ALL} -DDLL_EXPORT")
 else()
+    include(${CMAKE_CURRENT_SOURCE_DIR}/../FindHIDAPI.cmake)
+	include_directories(${HIDAPI_INCLUDE_DIRS}/hidapi)
+
+
+	set(CUSTOM_COMPILE_FLAGS_ALL "${CUSTOM_COMPILE_FLAGS_ALL} -std=c99")
+
+    if(FORCE_I386)
+        set(CUSTOM_COMPILE_FLAGS_ALL "${CUSTOM_COMPILE_FLAGS_ALL} -m32")
+    	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -m32")
+    endif()
+
+    if(FORCE_STATIC)
+        set(LIBRARY_TYPE "STATIC")
+    endif()
+
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CUSTOM_COMPILE_FLAGS_ALL} -g")
 endif()
@@ -43,7 +72,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CUSTOM_COMPILE_FLAGS_A
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${CUSTOM_COMPILE_FLAGS_ALL}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CUSTOM_COMPILE_FLAGS_ALL}")
 
-add_library(openhmd SHARED ${LIB_SOURCE_FILES})
-set_target_properties(openhmd PROPERTIES PREFIX "")
+add_library(${LIBRARY_NAME} ${LIBRARY_TYPE} ${LIB_SOURCE_FILES})
+set_target_properties(${LIBRARY_NAME} PROPERTIES PREFIX "")
 
-target_link_libraries(openhmd ${EXTRA_LIBS})
+target_link_libraries(${LIBRARY_NAME} ${EXTRA_LIBS})
